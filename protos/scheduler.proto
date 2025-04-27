@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package scheduler;
+
+service JobScheduler {
+  rpc SubmitJob (JobRequest) returns (JobResponse);
+  rpc GetJobStatus (JobStatusRequest) returns (JobStatusResponse);
+}
+
+message JobRequest {
+  string job_id = 1;
+  string task = 2;
+  string data = 3;
+  int32 priority = 4; // Optional: add priority
+}
+
+message JobResponse {
+  string message = 1;
+}
+
+message JobStatusRequest {
+  string job_id = 1;
+}
+
+message JobStatusResponse {
+  string status = 1;
+}
