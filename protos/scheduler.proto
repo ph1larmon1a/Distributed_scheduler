@@ -8,10 +8,10 @@ service JobScheduler {
 }
 
 message JobRequest {
-  string job_id = 1;
-  string task = 2;
-  string data = 3;
-  int32 priority = 4; // Optional: add priority
+    string job_id = 1;
+    string payload = 2;
+    int32 execution_time = 3;
+    optional int32 priority = 4;
 }
 
 message JobResponse {
