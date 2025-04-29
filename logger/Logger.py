@@ -61,7 +61,7 @@ def log_event_callback(ch, method, properties, body):
             task_id = details.get('task_id', 'unknown')
             execution_time = details.get('execution_time', 'unknown')
             priority = details.get('priority', 'unknown')
-            log_entry = f"[{timestamp}] {component}: Task {task_id} scheduled (execution_time={execution_time}s, priority={priority})\n"
+            log_entry = f"[{timestamp}] {component}: Job {task_id} scheduled (execution_time={execution_time}s, priority={priority})\n"
 
         elif event_type == 'TASK_STARTED':
             task_id = details.get('task_id', 'unknown')
@@ -70,7 +70,7 @@ def log_event_callback(ch, method, properties, body):
 
         elif event_type == 'TASK_COMPLETED':
             task_id = details.get('task_id', 'unknown')
-            duration = details.get('duration', 'unknown')
+            duration = details.get('execution_time', 'unknown')
             log_entry = f"[{timestamp}] {component} (Worker {worker_id}): Completed task {task_id} in {duration}s\n"
 
         elif event_type == 'TASK_FAILED':

@@ -91,7 +91,7 @@ class JobSchedulerServicer(scheduler_pb2_grpc.JobSchedulerServicer):
 
             task_message = json.dumps({
                 'task_id': job.id,
-                'wait_time': job.execution_time,
+                'execution_time': job.execution_time,
                 'priority': job.priority,
                 'payload': job.payload,
                 'timestamp': datetime.now().isoformat()

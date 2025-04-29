@@ -157,7 +157,7 @@ def process_task(ch, method, properties, body):
             print(f" [🎉] Job {task_id} completed")
             log_event(ch, 'JOB_COMPLETED', {
                 'job_id': task_id,
-                'duration': wait_time
+                'execution_time': wait_time
             })
             ch.basic_publish(
                 exchange='',
