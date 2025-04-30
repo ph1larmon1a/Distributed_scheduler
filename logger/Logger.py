@@ -78,6 +78,11 @@ def log_event_callback(ch, method, properties, body):
             reason = details.get('reason', 'unknown')
             log_entry = f"[{timestamp}] {component} (Worker {worker_id}): Failed task {task_id} - {reason}\n"
 
+        elif event_type == 'TASK_RETRY':
+            task_id = details.get('job_id', 'unknown')
+            failed_worker_id = details.get('failed_worker_id', 'unknown')
+            log_entry = f"[{timestamp}] {component}: Retrying task {task_id} (failed on worker {failed_worker_id})\n"
+
         elif event_type == 'WORKER_STARTED':
             log_entry = f"[{timestamp}] Worker {worker_id}: Started\n"
 

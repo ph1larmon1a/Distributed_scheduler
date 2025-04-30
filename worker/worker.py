@@ -125,45 +125,45 @@ def heartbeat_loop():
 def process_task(ch, method, properties, body):
     try:
         data = json.loads(body)
-        task_id = data.get('task_id', 'unknown')
-        wait_time = data.get('wait_time', 5)
+        job_id = data.get('job_id', 'unknown')
+        execution_time = data.get('execution_time', 5)
 
         log_event(ch, 'JOB_STARTED', {
-            'job_id': task_id,
-            'wait_time': wait_time
+            'job_id': job_id,
+            'execution_time': execution_time
         })
 
-        print(f" [x] Processing job {task_id}, waiting for {wait_time}s")
+        print(f" [x] Processing job {job_id}, waiting for {execution_time}s")
 
-        time.sleep(wait_time)
+        time.sleep(execution_time)
 
         if random.random() * 100 < FAILURE_CHANCE:
-            print(f" [!] Job {task_id} failed")
+            print(f" [!] Job {job_id} failed")
             log_event(ch, 'JOB_FAILED', {
-                'job_id': task_id,
+                'job_id': job_id,
                 'reason': 'random failure'
             })
             ch.basic_publish(
                 exchange='',
                 routing_key=TASK_RESULT_QUEUE,
                 body=json.dumps({
-                    'job_id': task_id,
+                    'job_id': job_id,
                     'worker_id': WORKER_ID,
                     'status': 'failed',
                     'timestamp': datetime.now().isoformat()
                 })
             )
         else:
-            print(f" [🎉] Job {task_id} completed")
+            print(f" [🎉] Job {job_id} completed")
             log_event(ch, 'JOB_COMPLETED', {
-                'job_id': task_id,
-                'execution_time': wait_time
+                'job_id': job_id,
+                'execution_time': execution_time
             })
             ch.basic_publish(
                 exchange='',
                 routing_key=TASK_RESULT_QUEUE,
                 body=json.dumps({
-                    'task_id': task_id,
+                    'job_id': job_id,
                     'worker_id': WORKER_ID,
                     'status': 'completed',
                     'timestamp': datetime.now().isoformat()

@@ -94,3 +94,9 @@ class SchedulerState:
             if job_id in self.jobs:
                 return self.jobs[job_id].status
             return 'not_found'
+
+    def get_job(self, job_id):
+        with self.lock:
+            if job_id in self.jobs:
+                return self.jobs[job_id]
+            return None

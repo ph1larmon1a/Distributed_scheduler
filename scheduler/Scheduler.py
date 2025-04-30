@@ -90,7 +90,7 @@ class JobSchedulerServicer(scheduler_pb2_grpc.JobSchedulerServicer):
             self.state.update_job_status(job.id, 'queued')
 
             task_message = json.dumps({
-                'task_id': job.id,
+                'job_id': job.id,
                 'execution_time': job.execution_time,
                 'priority': job.priority,
                 'payload': job.payload,
@@ -108,7 +108,7 @@ class JobSchedulerServicer(scheduler_pb2_grpc.JobSchedulerServicer):
             )
 
             self.log_event(channel, 'TASK_SCHEDULED', {
-                'task_id': job.id,
+                'job_id': job.id,
                 'execution_time': job.execution_time,
                 'priority': job.priority
             })
@@ -200,20 +200,56 @@ def rabbitmq_listener(scheduler_state):
     def on_task_result(ch, method, properties, body):
         try:
             data = json.loads(body)
-            task_id = data.get('task_id')
+            job_id = data.get('job_id')
             worker_id = data.get('worker_id')
             status = data.get('status')
 
             if status == 'completed':
-                scheduler_state.update_job_status(task_id, 'completed', worker_id)
-                print(f"Task {task_id} completed by worker {worker_id}")
+                scheduler_state.update_job_status(job_id, 'completed', worker_id)
+                print(f"Job {job_id} completed by worker {worker_id}")
             elif status == 'failed':
-                scheduler_state.update_job_status(task_id, 'failed', worker_id)
-                print(f"Task {task_id} failed by worker {worker_id}")
+                job = scheduler_state.get_job(job_id)
+                if not job:
+                    print(f"Job {job_id} not found")
+                    return
+
+                print(f"Job {job_id} failed by worker {worker_id}, retrying...")
+
+                task_message = json.dumps({
+                    'job_id': job_id,
+                    'wait_time': job.execution_time,
+                    'priority': job.priority,
+                    'payload': job.payload,
+                    'timestamp': datetime.now().isoformat()
+                })
+
+                ch.basic_publish(
+                    exchange='',
+                    routing_key=TASK_QUEUE,
+                    body=task_message,
+                    properties=pika.BasicProperties(
+                        delivery_mode=2,
+                        priority=job.priority
+                    )
+                )
+
+                ch.basic_publish(
+                    exchange='',
+                    routing_key=LOGGER_QUEUE,
+                    body=json.dumps({
+                        'event_type': 'TASK_RETRY',
+                        'component': 'scheduler',
+                        'details': {
+                            'job_id': job_id,
+                            'failed_worker_id': worker_id
+                        },
+                        'timestamp': datetime.now().isoformat()
+                    })
+                )
 
             ch.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
-            print(f"Error processing task result: {e}")
+            print(f"Error processing job result: {e}")
             ch.basic_nack(delivery_tag=method.delivery_tag)
 
     while True:
