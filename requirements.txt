@@ -1,4 +1,4 @@
-flask
-requests
-redis
-
+pika
+grpcio
+grpcio-tools
+python-dotenv
