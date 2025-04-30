@@ -24,6 +24,12 @@ To run the system you need to:
 
 To do this you can use the following commands:
 
+Copy environment variables:
+
+```bash
+cp .env.example .env
+```
+
 Run RabbitMQ cluster with Grafana:
 
 ```bash
